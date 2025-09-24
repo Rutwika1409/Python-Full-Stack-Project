@@ -218,15 +218,11 @@ For a README, you don’t need to be *this* detailed. You can condense it so tha
 - **Export & Reports:** Generate PDF/CSV reports for budgets, transactions, and savings goals.
 
 ## Support
-<<<<<<< HEAD
-<<<<<<< HEAD
-if you encounter any issues or have questions: "rutwikagoparaju1409@gmail.com"
-=======
+
 if you encounter any issues or have questions: `rutwikagoparaju1409@gmail.com`
->>>>>>> a0a1190 (First commit)
-=======
-if you encounter any issues or have questions: "rutwikagoparaju1409@gmail.com"
->>>>>>> bfb555e (First commit)
+
+
+
 
 
 

@@ -47,16 +47,16 @@ FINTRACK/
 - A Supabase account
 - Git (Push, Cloning)
 
-### 1. Clone or Download the Project
-# Option 1: Clone with Git
+## 1. Clone or Download the Project
+### Option 1: Clone with Git
 git clone [<repository-url>](https://github.com/Rutwika1409/Python-Full-Stack-Project.git)
 
-# Option 2: Download and extract the ZIP file
+### Option 2: Download and extract the ZIP file
 
-### 2. Install Dependencies
+## 2. Install Dependencies
 pip install -r requirements.txt
 
-### 3. Set Up Supabase Database
+## 3. Set Up Supabase Database
 1) create a supabase project
 2) create the task table
 -go to sql editor in your supabase dashboard
@@ -113,7 +113,7 @@ CREATE TABLE savings_goals (
 ```
 3) **Get Your Credentials:
 
-### 4. Configure Environment Variables
+## 4. Configure Environment Variables
 
 1. Create a `.env` file in the project root
 
@@ -121,7 +121,7 @@ CREATE TABLE savings_goals (
 SUPABASE_URL = your_project_url
 SUPABASE_KEY = your_anon_key
 
-### 5. Run the Application
+## 5. Run the Application
 
 ## Streamlit Frontend
 streamlit run frontend/app.py

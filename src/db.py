@@ -139,8 +139,11 @@ def add_budget(user_id, category_id, amount, month=None):
     }).execute()
 
 #Get All Budgets
-def get_all_budgets(user_id):
-    return supabase.table("budgets").select("*").eq("user_id", user_id).execute()
+def get_all_budgets(user_id=None):
+    query = supabase.table("budgets").select("*")
+    if user_id:
+        query = query.eq("user_id", user_id)
+    return query.execute()
 
 #Get Budget by ID
 def get_budget_by_id(budget_id):
@@ -182,8 +185,11 @@ def add_saving_goal(user_id, name, target_amount, saved_amount=0.0, target_date=
     return supabase.table("savings_goals").insert(goal_data).execute()
 
 #Get All Saving Goals
-def get_all_saving_goals(user_id):
-    return supabase.table("savings_goals").select("*").eq("user_id", user_id).execute()
+def get_all_saving_goals(user_id=None):
+    query = supabase.table("savings_goals").select("*")
+    if user_id:
+        query = query.eq("user_id", user_id)
+    return query.execute()
 
 #Get Saving Goal by ID
 def get_saving_goal_by_id(goal_id):

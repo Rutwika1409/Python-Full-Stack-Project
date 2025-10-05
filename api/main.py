@@ -12,7 +12,7 @@ import sys, os
 
 # Import Taskmanager from src
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from src.logic import UserLogic, CategoryLogic, TransactionLogic, BudgetsLogic, SavingGoals
+from src.logic import UserLogic, CategoryLogic, TransactionLogic, BudgetsLogic, SavingGoalsLogic
 
 
 
@@ -35,7 +35,7 @@ user_logic = UserLogic()
 category_logic = CategoryLogic()
 transaction_logic = TransactionLogic()
 budgets_logic = BudgetsLogic()
-saving_goals_logic = SavingGoals()
+saving_goals_logic = SavingGoalsLogic()
 
 
 #----------Data Models----------

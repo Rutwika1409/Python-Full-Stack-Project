@@ -7,6 +7,7 @@ from src.auth import AuthLogic
 # Ensure backend logic is accessible
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+
 from src.logic import UserLogic, CategoryLogic, TransactionLogic, BudgetsLogic, SavingGoalsLogic
 
 # ------------------ App Configuration ------------------

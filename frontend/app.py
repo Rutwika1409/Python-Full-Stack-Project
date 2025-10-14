@@ -71,6 +71,9 @@ if st.session_state.logged_in_user:
     txns = transaction_logic.fetch_all_transactions()
     budgets = budgets_logic.fetch_all_budgets(user_id)
     goals = saving_goals_logic.fetch_all_saving_goals(user_id)
+    
+    # ADDED: Fetch categories for budget alerts and spending chart
+    categories_res = category_logic.fetch_all_categories()
 
     user_txns = [t for t in txns["data"] if t["user_id"] == user_id] if txns["Success"] else []
     income = sum(t["amount"] for t in user_txns if t["type"] == "income")
@@ -87,13 +90,35 @@ if st.session_state.logged_in_user:
 
     st.divider()
 
-    # -------- Monthly Budgets --------
-    st.subheader("📅 Ongoing Month Budgets")
-    if budgets["Success"] and budgets["data"]:
-        for b in budgets["data"]:
-            st.write(f"Category ID: {b['category_id']} — Fixed: ₹{b['amount']}")
+    # -------- Budget Alerts --------
+    st.subheader("🔔 Budget Alerts")
+    
+    # Check if categories were fetched successfully
+    if categories_res["Success"] and categories_res["data"]:
+        # Create a mapping from category ID to category name
+        category_id_to_name = {c["id"]: c["name"] for c in categories_res["data"]}
+        
+        budget_analysis = budgets_logic.check_budget_limits(user_id)
+        if budget_analysis["Success"] and budget_analysis["data"]:
+            exceeded_budgets = [b for b in budget_analysis["data"] if b['exceeded']]
+            warning_budgets = [b for b in budget_analysis["data"] if b['percentage_used'] >= 90 and not b['exceeded']]
+            
+            if exceeded_budgets:
+                for budget in exceeded_budgets:
+                    category_name = category_id_to_name.get(budget['category_id'], "Unknown Category")
+                    st.error(f"🚨 **{category_name}** budget exceeded by ₹{budget['spent_amount'] - budget['budget_amount']:,.2f}")
+            
+            if warning_budgets:
+                for budget in warning_budgets:
+                    category_name = category_id_to_name.get(budget['category_id'], "Unknown Category")
+                    st.warning(f"⚠️ **{category_name}** budget at {budget['percentage_used']:.1f}%")
+            
+            if not exceeded_budgets and not warning_budgets:
+                st.success("✅ All budgets are within limits!")
+        else:
+            st.info("No budget alerts for this month.")
     else:
-        st.info("No budgets set for this month.")
+        st.info("No categories found. Please add categories first to set up budgets.")
 
     st.divider()
 
@@ -118,8 +143,14 @@ if st.session_state.logged_in_user:
                 cat_totals[t["category_id"]] = cat_totals.get(t["category_id"], 0) + t["amount"]
 
         if cat_totals:
-            df = [{"Category ID": k, "Amount": v} for k, v in cat_totals.items()]
-            fig = px.pie(df, names="Category ID", values="Amount", title="Expenses by Category")
+            # Use category names instead of IDs if available
+            if categories_res["Success"] and categories_res["data"]:
+                category_id_to_name = {c["id"]: c["name"] for c in categories_res["data"]}
+                df = [{"Category": category_id_to_name.get(k, "Unknown"), "Amount": v} for k, v in cat_totals.items()]
+            else:
+                df = [{"Category": k, "Amount": v} for k, v in cat_totals.items()]
+                
+            fig = px.pie(df, names="Category", values="Amount", title="Expenses by Category")
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("No expenses recorded this month.")

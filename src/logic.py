@@ -185,21 +185,53 @@ class BudgetsLogic:
             today = date.today()
             month = date(today.year, today.month, 1)
         
+        # Handle string month input (from Streamlit)
+        if isinstance(month, str):
+            try:
+                # Try parsing as YYYY-MM-DD format
+                if len(month) == 10:  # YYYY-MM-DD
+                    month = datetime.strptime(month, '%Y-%m-%d').date()
+                elif len(month) == 7:  # YYYY-MM
+                    month = datetime.strptime(month + '-01', '%Y-%m-%d').date()
+                else:
+                    return {"Success": False, "message": "Invalid month format. Use YYYY-MM-DD or YYYY-MM"}
+            except ValueError as e:
+                return {"Success": False, "message": f"Invalid month format: {str(e)}"}
+        
         # Ensure month is first day of month
         if not isinstance(month, date):
             return {"Success": False, "message": "Month must be a date object."}
 
-
-        # Convert to string before sending to DB
-        month_str = month.isoformat()  # "YYYY-MM-DD"
+        # Ensure month is first day of the month
+        month = date(month.year, month.month, 1)
 
         # Call database
-        result = self.db.add_budget(user_id, category_id, amount, month_str)
+        result = self.db.add_budget(user_id, category_id, amount, month)
         if result.data:
             return {"Success": True, "data": result.data}
         else:
             return {"Success": False, "message": f"Error: {result.error}"}
 
+    # Also update the modify_budget method
+    def modify_budget(self, budget_id, category_id=None, amount=None, month=None):
+        """ Update budget details in the database."""
+        # Handle string month input if provided
+        if month and isinstance(month, str):
+            try:
+                if len(month) == 10:  # YYYY-MM-DD
+                    month = datetime.strptime(month, '%Y-%m-%d').date()
+                elif len(month) == 7:  # YYYY-MM
+                    month = datetime.strptime(month + '-01', '%Y-%m-%d').date()
+                # Ensure it's first day of month
+                month = date(month.year, month.month, 1)
+            except ValueError:
+                return {"Success": False, "message": "Invalid month format"}
+        
+        result = self.db.update_budget(budget_id, category_id, amount, month)
+        if result.data:
+            return {"Success": True, "message": "Budget updated Successfully!"}
+        else:
+            return {"Success": False, "message": f"Error: {result.error}"}
 
     #---------Read----------
     def fetch_all_budgets(self, user_id=None): 
@@ -218,14 +250,6 @@ class BudgetsLogic:
         else:
             return {"Success": False, "message": f"Error: {result.error}"}
     
-    #--------Update----------
-    def modify_budget(self, budget_id, category_id=None, amount=None, month=None):
-        """ Update budget details in the database."""
-        result = self.db.update_budget(budget_id, category_id, amount, month)
-        if result.data:
-            return {"Success": True, "message": "Budget updated Successfully!"}
-        else:
-            return {"Success": False, "message": f"Error: {result.error}"}
         
     #--------Delete----------
     def remove_budget(self, budget_id):
@@ -235,6 +259,46 @@ class BudgetsLogic:
             return {"Success": True, "message": "Budget deleted Successfully!"}
         else:
             return {"Success": False, "message": f"Error: {result.error}"}
+        
+     # check budget limits
+    def check_budget_limits(self, user_id, month=None):
+        """Check if spending exceeds budget limits for each category"""
+        if month is None:
+            today = date.today()
+            month = date(today.year, today.month, 1)
+        
+        month_str = month.isoformat() if isinstance(month, date) else month
+        
+        # Get all budgets for the user and month
+        budgets = self.db.get_all_budgets(user_id)
+        if not budgets.data:
+            return {"Success": True, "data": []}
+        
+        # Get transactions for the month
+        transactions = self.db.get_monthly_transactions(user_id, month.year, month.month)
+        
+        results = []
+        for budget in budgets.data:
+            if budget['month'].startswith(month_str[:7]):  # Compare YYYY-MM
+                category_id = budget['category_id']
+                budget_amount = budget['amount']
+                
+                # Calculate total expenses for this category in the month
+                category_expenses = sum(
+                    t['amount'] for t in transactions.data 
+                    if t['category_id'] == category_id and t['type'] == 'expense'
+                )
+                
+                results.append({
+                    'category_id': category_id,
+                    'budget_amount': budget_amount,
+                    'spent_amount': category_expenses,
+                    'remaining_amount': budget_amount - category_expenses,
+                    'exceeded': category_expenses > budget_amount,
+                    'percentage_used': (category_expenses / budget_amount * 100) if budget_amount > 0 else 0
+                })
+        
+        return {"Success": True, "data": results}
 
 
 class SavingGoalsLogic:

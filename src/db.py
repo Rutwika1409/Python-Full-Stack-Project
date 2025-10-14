@@ -147,6 +147,19 @@ class DatabaseManager:
             update_data["description"] = description
         return self.supabase.table("transactions").update(update_data).eq("id", transaction_id).execute()
 
+
+    # In DatabaseManager class in db.py
+    def get_monthly_transactions(self, user_id, year, month):
+        """Get transactions for a specific user and month"""
+        start_date = f"{year}-{month:02d}-01"
+        if month == 12:
+            end_date = f"{year + 1}-01-01"
+        else:
+            end_date = f"{year}-{month + 1:02d}-01"
+        
+        result = self.supabase.table("transactions").select("*").eq("user_id", user_id).gte("date", start_date).lt("date", end_date).execute()
+        return self._convert_dates_to_strings(result)
+    
     # Delete Transaction
     def delete_transaction(self, transaction_id):
         return self.supabase.table("transactions").delete().eq("id", transaction_id).execute()

@@ -25,7 +25,8 @@ This project demonstrates full-stack development skills using **Python for the b
 FINTRACK/
 ├── src/                # Core application logic
 │   ├── logic.py        # Business logic and tasks
-│   └── db.py           # Database operations
+│   ├── db.py           # Database operations
+│   └── auth.py         # Authentication & authorization
 ├── api/                # Backend API
 │   └── main.py         # FastAPI endpoints
 ├── frontend/           # Frontend application
